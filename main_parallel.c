@@ -5,7 +5,7 @@
 /*The main function is the entry point of the parallel version of the program. It uses MPI (Message Passing Interface) to distribute 
 the computation of proximity points across multiple processes. The input data is read from the "input.txt" file, 
 and the results are written to the "output.txt" file. The function measures the execution time of the parallel implementation
-Return: An integer representing the exit status of the program.jjjjj*/
+Return: An integer representing the exit status of the program.*/
 int main(int argc, char *argv[])
 {
     clock_t startTime, endTime;
