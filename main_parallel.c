@@ -2,6 +2,7 @@
 #include <string.h>
 #include "myProto.h"
 
+
 /*The main function is the entry point of the parallel version of the program. It uses MPI (Message Passing Interface) to distribute 
 the computation of proximity points across multiple processes. The input data is read from the "input.txt" file, 
 and the results are written to the "output.txt" file. The function measures the execution time of the parallel implementation
@@ -96,6 +97,7 @@ int main(int argc, char *argv[])
     //Allocate memory for the results array using the allocateResults function
     int *results = allocateResults(myTValuesSize);
 
+ 
     //Compute results on the GPU using the performGPUComputation function
     performGPUComputation(&N, &K, &D, &myTValuesSize, myTValues, points, results);
 

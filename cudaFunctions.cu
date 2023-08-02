@@ -214,6 +214,8 @@ void checkCudaError(cudaError_t error, Point *dPoints, double *dTValues, int *dR
 //This function performs the proximity computation on the GPU using CUDA
 void performGPUComputation(int *N, int *K, double *D, int *tCountSize, double *myTValues, Point *points, int *results)
 {
+    //cudaSetDevice(0);
+    
     cudaError_t error = cudaSuccess;
     //Calculate the number of threads per block for the GPU kernel computation, ensuring that the number of threads does not exceed BLOCK_SIZE.
     int threadPerBlock = min(BLOCK_SIZE, *tCountSize);
