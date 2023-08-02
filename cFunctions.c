@@ -3,46 +3,33 @@
 #include <string.h>
 
 /*This function calculates the sendcounts and displacements for distributing an array of elements among different processes
- in a parallel environment using MPI (Message Passing Interface). The goal is to evenly distribute the elements across processes, 
+ The goal is to evenly distribute the elements across processes, 
  considering any remainders for a fair distribution.
  */
 void calculateSendcountsAndDispls(int rank, int size, int tCount, int *sendcounts, int *displs)
 {
-    // Calculate the average number of elements that each process will receive (assuming an even distribution).
-    int tCountSize = tCount / size;
-    // Calculate the remaining number of elements that need to be distributed after an even distribution is performed.
-    int remainTValues = tCount % size;
+    int tCountSize = tCount / size;  // Calculate the average number of elements that each process will receive
+    int remainTValues = tCount % size;  // Calculate the remaining number of elements
 
-    //Set the base sendcount and displacement for the current process:
-    int baseSendcount = tCountSize;
-    int baseDisplacement = rank * tCountSize;
+    int baseSendcount = tCountSize;  // Set the base sendcount for the current process
+    int baseDisplacement = 0;  // Initialize the base displacement
 
-    //If the current process rank is less than remainTValues, it means it should receive an additional element, 
-    //so increment the base sendcount and adjust the base displacement accordingly:
-    if (rank < remainTValues) {
-        baseSendcount++;
-        baseDisplacement += rank;
-    } else {
-        // Processes with rank greater than or equal to remainTValues do not receive an additional element.
-        baseDisplacement += remainTValues;
-    }
-
-    //Loop over all processes and set their sendcounts and displacements:
+    // Loop over all processes and set their sendcounts and displacements:
     for (int i = 0; i < size; i++) {
-        // Set the sendcount for the current process.
-        sendcounts[i] = baseSendcount;
-        // Set the displacement for the current process.
-        displs[i] = baseDisplacement;
+        sendcounts[i] = baseSendcount;  // Set the sendcount for the current process
+        displs[i] = baseDisplacement;  // Set the displacement for the current process
 
-        // Move the baseDisplacement to the next position for the next iteration.
+        // Move the baseDisplacement to the next position for the next iteration
         baseDisplacement += baseSendcount;
 
-        // If the next process will receive an additional element, increment baseSendcount.
-        if (i + 1 < remainTValues) {
-            baseSendcount++;
+        // If there are remaining elements, distribute them among the first 'remainTValues' processes
+        if (i < remainTValues) {
+            sendcounts[i]++;
+            baseDisplacement++;
         }
     }
 }
+
 
 /* This function dynamically allocates memory for an array that will store the results of a computation. 
 It initializes all elements of the array to the value -1.

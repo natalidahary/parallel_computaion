@@ -5,8 +5,7 @@
 /*The main function is the entry point of the parallel version of the program. It uses MPI (Message Passing Interface) to distribute 
 the computation of proximity points across multiple processes. The input data is read from the "input.txt" file, 
 and the results are written to the "output.txt" file. The function measures the execution time of the parallel implementation
-Return: An integer representing the exit status of the program.
-*/
+Return: An integer representing the exit status of the program.*/
 int main(int argc, char *argv[])
 {
     clock_t startTime, endTime;
@@ -16,7 +15,7 @@ int main(int argc, char *argv[])
     MPI_Init(&argc, &argv);
     
     //Declare variables for storing points data, N, K, D, tCount, tValues array, proximites array, and MPI-related variables
-    int rank, size;
+    int rank, size=0;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
@@ -84,9 +83,15 @@ int main(int argc, char *argv[])
     int myTValuesSize = sendcounts[rank];
     // Allocate memory for the myTValues array to store the time values that the current process will work on
     double *myTValues = (double *)malloc(myTValuesSize * sizeof(double));
+ 
+    //printf("Rank %d - sendcounts: %d, myTValuesSize: %d\n", rank, sendcounts[rank], myTValuesSize);
 
     //Scatter t values to all processes using MPI_Scatterv
     MPI_Scatterv(tValues, sendcounts, displs, MPI_DOUBLE, myTValues, myTValuesSize, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    /*for (int i = 0; i < myTValuesSize; i++)
+    {
+    printf("Rank %d - Received %.2lf\n", rank, myTValues[i]);
+    }*/
 
     //Allocate memory for the results array using the allocateResults function
     int *results = allocateResults(myTValuesSize);
@@ -135,5 +140,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
-
