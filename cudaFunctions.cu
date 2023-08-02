@@ -3,7 +3,6 @@
 #include "myProto.h"
 
 
-
 /*performing a smooth oscillatory motion between two points (x1 and x2) over time (t). 
 It calculates the position x at a given time t using the sine function, which results in a periodic 
 back-and-forth movement between the two points. */
@@ -230,8 +229,10 @@ void performGPUComputation(int *N, int *K, double *D, int *tCountSize, double *m
     //Allocate memory on the device for dPoints, dTValues, and dResults.
     error = cudaMalloc((void **)&dPoints, (*N) * sizeof(Point));
     checkCudaError(error, dPoints, dTValues, dResults);
+    cudaDeviceSynchronize();
     error = cudaMalloc((void **)&dTValues, (*tCountSize) * sizeof(double));
     checkCudaError(error, dPoints, dTValues, dResults);
+    cudaDeviceSynchronize();
     error = cudaMalloc((void **)&dResults, CONSTRAINTS * (*tCountSize) * sizeof(int));
     checkCudaError(error, dPoints, dTValues, dResults);
 
@@ -256,11 +257,10 @@ void performGPUComputation(int *N, int *K, double *D, int *tCountSize, double *m
     //Copy the results of the GPU computation from the device (GPU) memory to the host (CPU) memory.
     error = cudaMemcpy(results, dResults, CONSTRAINTS * (*tCountSize) * sizeof(int), cudaMemcpyDeviceToHost);
     checkCudaError(error, dPoints, dTValues, dResults);
-
+    
     //Release the device memory that was allocated for dPoints, dTValues, and dResults. This step is crucial to 
     //avoid memory leaks and efficiently manage GPU resources.
     cudaFree(dPoints);
     cudaFree(dTValues);
     cudaFree(dResults);
 }
-
