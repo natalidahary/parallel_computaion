@@ -31,13 +31,14 @@ int main(int argc, char *argv[])
     if (rank == 0)
     {
        readInputFromFile(input_file, &N, &K, &D, &tCount, &points);
-       calculateTValues(tCount, &tValues);
     }
     //Broadcast the input data (N, K, D, tCount, tValues, and points) to all processes using MPI_Bcast
     MPI_Bcast(&N, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&K, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&D, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
     MPI_Bcast(&tCount, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    calculateTValues(tCount, &tValues);
     
     // Define the custom MPI datatype MPI_POINT to represent the Point structure.
     MPI_Datatype MPI_POINT;
