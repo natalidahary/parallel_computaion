@@ -111,31 +111,25 @@ gathering the computed results from all processes into a global 2D array on the 
 It uses MPI's MPI_Gatherv function, which allows efficient data gathering and placement of the results in the globalResults array. 
 */
 void collectResults(int rank, int size, int N, int tCount, int tCountSize, int *results, int *globalResults) {
-    //storing the number of elements that each process contributes to the gathered array.
     int *recvcounts = (int *)malloc(size * sizeof(int));
-    //storing the displacements (offsets) for each process's data in the gathered array.
     int *displs = (int *)malloc(size * sizeof(int));
 
-    //Calculate the recvcounts array to determine the number of elements each process will contribute to the gathered array.
+    #pragma omp parallel for
     for (int i = 0; i < size; i++) {
         recvcounts[i] = CONSTRAINTS * ((i < tCount % size) ? (tCount / size + 1) : (tCount / size));
     }
 
-    //Calculate the displs array to determine the displacement (starting index) for each process's data in the gathered array.
     displs[0] = 0;
     for (int i = 1; i < size; i++) {
-        //The displacement is the sum of the previous process's displacement and the number of elements contributed
-        //by the previous process (recvcounts[i - 1]).
         displs[i] = displs[i - 1] + recvcounts[i - 1];
     }
 
-    //Gather the 2D array results from all processes into the globalResults array on the root process using the MPI function MPI_Gatherv.
     MPI_Gatherv(results, CONSTRAINTS * tCountSize, MPI_INT,
                 globalResults, recvcounts, displs, MPI_INT,
                 0, MPI_COMM_WORLD);
-    //Free the memory allocated for the recvcounts and displs arrays.
+
     free(recvcounts); 
-    free(displs);     
+    free(displs);   
 }
 
 
