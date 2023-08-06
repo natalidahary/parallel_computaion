@@ -11,22 +11,16 @@ void calculateSendcountsAndDispls(int rank, int size, int tCount, int *sendcount
     int tCountSize = tCount / size;  // Calculate the average number of elements that each process will receive
     int remainTValues = tCount % size;  // Calculate the remaining number of elements
 
-    int baseSendcount = tCountSize;  // Set the base sendcount for the current process
-    int baseDisplacement = 0;  // Initialize the base displacement
+    // Calculate the number of elements to distribute in this process
+    int mySendcount = (rank < remainTValues) ? tCountSize + 1 : tCountSize;
+    // Calculate the displacement for this process
+    int myDisplacement = rank * tCountSize + ((rank < remainTValues) ? rank : remainTValues);
 
-    // Loop over all processes and set their sendcounts and displacements:
+    // Parallelize the initialization of sendcounts and displacements using OpenMP
+    #pragma omp parallel for
     for (int i = 0; i < size; i++) {
-        sendcounts[i] = baseSendcount;  // Set the sendcount for the current process
-        displs[i] = baseDisplacement;  // Set the displacement for the current process
-
-        // Move the baseDisplacement to the next position for the next iteration
-        baseDisplacement += baseSendcount;
-
-        // If there are remaining elements, distribute them among the first 'remainTValues' processes
-        if (i < remainTValues) {
-            sendcounts[i]++;
-            baseDisplacement++;
-        }
+        sendcounts[i] = (i < remainTValues) ? tCountSize + 1 : tCountSize;
+        displs[i] = i * tCountSize + ((i < remainTValues) ? i : remainTValues);
     }
 }
 
