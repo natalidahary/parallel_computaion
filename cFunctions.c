@@ -107,23 +107,30 @@ void calculateTValues(int tCount, double **tValues) {
 
 
 /*
-gathering the computed results from all processes into a global 2D array on the root process (rank 0). 
-It uses MPI's MPI_Gatherv function, which allows efficient data gathering and placement of the results in the globalResults array. 
-*/
+the collectResults function efficiently gathers the computed results from all processes and stores them 
+in the global 2D array (globalResults) on the root process (rank 0). The use of MPI_Gatherv ensures
+that the gathered data is correctly placed in the global array, taking into account the contributions from all processes. 
+The OpenMP parallelization in the function helps distribute the work of calculating recvcounts among multiple threads when available, 
+potentially improving performance in large-scale scenarios.*/
 void collectResults(int rank, int size, int N, int tCount, int tCountSize, int *results, int *globalResults) {
+    //Two arrays, recvcounts and displs, are allocated dynamically to store the number of elements c
+    //ontributed by each process (recvcounts) and the displacements (offsets) for each process's data in the gathered array (displs).
     int *recvcounts = (int *)malloc(size * sizeof(int));
     int *displs = (int *)malloc(size * sizeof(int));
-
+    //This OpenMP parallelized loop calculates the recvcounts array, which determines the number of elements each process will contribute to the gathered array. 
+    //It distributes the elements as evenly as possible among the processes, considering the constraint (CONSTRAINTS) on the number of data points for each time point.
     #pragma omp parallel for
     for (int i = 0; i < size; i++) {
         recvcounts[i] = CONSTRAINTS * ((i < tCount % size) ? (tCount / size + 1) : (tCount / size));
     }
-
+    //This loop calculates the displs array, which determines the displacement (starting index) 
+    //for each process's data in the gathered array. It relies on the previously computed recvcounts array to calculate the displacements correctly.
     displs[0] = 0;
     for (int i = 1; i < size; i++) {
         displs[i] = displs[i - 1] + recvcounts[i - 1];
     }
-
+    //The MPI_Gatherv function gathers the local results array from all processes into the globalResults array 
+    //on the root process (rank 0). It uses the recvcounts and displs arrays to efficiently place the data in the correct locations in the global array.
     MPI_Gatherv(results, CONSTRAINTS * tCountSize, MPI_INT,
                 globalResults, recvcounts, displs, MPI_INT,
                 0, MPI_COMM_WORLD);
